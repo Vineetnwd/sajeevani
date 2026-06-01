@@ -1,4 +1,4 @@
--- Sanjeevani Life Ayurvedic Platform Database Schema
+-- Praanveda Ayurshakti Database Schema
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;

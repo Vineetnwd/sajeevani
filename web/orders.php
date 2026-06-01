@@ -57,10 +57,15 @@ if (!isset($_SESSION['user_id'])) {
                                         <div class="text-[10px] text-gray-500 italic truncate max-w-xs">'.htmlspecialchars($o['status_remarks'] ?? '').'</div>
                                       </td>';
                                 echo '<td class="px-6 py-4 font-bold text-gray-900">₹'.$o['total_amount'].'</td>';
-                                echo '<td class="px-6 py-4"><span class="px-2.5 py-1 text-[11px] font-bold uppercase rounded-full bg-'.$statusColor.'-100 text-'.$statusColor.'-700">'.$o['status'].'</span></td>';
+                                echo '<td class="px-6 py-4">
+                                        <div class="flex flex-col items-start space-y-1">
+                                            <span class="px-2.5 py-1 text-[10px] font-bold uppercase rounded-full bg-'.$statusColor.'-100 text-'.$statusColor.'-700">'.$o['status'].'</span>
+                                            <button onclick="viewHistory('.$o['id'].')" class="text-[10px] text-indigo-600 hover:underline font-medium">View History</button>
+                                        </div>
+                                      </td>';
                                 echo '<td class="px-6 py-4 text-right">
                                         <div class="flex justify-end items-center space-x-2">
-                                            <button onclick="openStatusModal('.$o['id'].', \''.$o['status'].'\', \''.htmlspecialchars($o['status_remarks'] ?? '', ENT_QUOTES).'\')" class="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Status</button>
+                                            <button onclick="openStatusModal('.$o['id'].', \''.$o['status'].'\', \''.htmlspecialchars($o['status_remarks'] ?? '', ENT_QUOTES).'\')" class="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Update</button>
                                             <button onclick="deleteOrder('.$o['id'].')" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Remove Order">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                             </button>
@@ -80,6 +85,23 @@ if (!isset($_SESSION['user_id'])) {
             </div>
         </div>
     </main>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 shadow-xl w-[450px] transform transition-all flex flex-col max-h-[80vh]">
+            <h3 class="text-lg font-bold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Order Timeline
+            </h3>
+            <div id="historyContainer" class="flex-1 overflow-y-auto space-y-4 py-4 pr-2">
+                <!-- Loaded via JS -->
+                <div class="text-center py-10 text-gray-400">Loading history...</div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="document.getElementById('historyModal').classList.add('hidden')" class="px-6 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-sm hover:bg-gray-200 transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Status Update Modal -->
     <div id="statusModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
@@ -119,6 +141,39 @@ if (!isset($_SESSION['user_id'])) {
             document.getElementById('modalStatusSelect').value = currentStatus;
             document.getElementById('modalRemarksText').value = currentRemarks;
             document.getElementById('statusModal').classList.remove('hidden');
+        }
+
+        async function viewHistory(id) {
+            const modal = document.getElementById('historyModal');
+            const container = document.getElementById('historyContainer');
+            modal.classList.remove('hidden');
+            container.innerHTML = '<div class="text-center py-10 text-gray-400">Loading timeline...</div>';
+            
+            try {
+                const response = await fetch(`api/orders.php?action=get_history&order_id=${id}`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<div class="text-center py-10 text-gray-400">No history found for this order.</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = result.data.map(h => `
+                        <div class="relative pl-6 border-l-2 border-indigo-100 pb-2">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-indigo-500"></div>
+                            <div class="flex justify-between items-start">
+                                <span class="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">${h.status}</span>
+                                <span class="text-[10px] text-gray-400 font-medium">${new Date(h.created_at).toLocaleString()}</span>
+                            </div>
+                            <p class="text-sm text-gray-700 mt-2 font-medium">${h.remarks || '<span class="text-gray-300 italic text-xs font-normal">No remark provided</span>'}</p>
+                            <div class="text-[10px] text-gray-400 mt-1">Updated by: ${h.updater_name || 'System'}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="text-center py-10 text-red-500">Error loading timeline.</div>';
+            }
         }
 
         async function deleteOrder(id) {

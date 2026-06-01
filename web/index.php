@@ -33,7 +33,7 @@ if(isset($_SESSION['user_id'])) {
 
     <div class="z-10 w-full max-w-md p-8 bg-white/70 glass-fx rounded-2xl shadow-xl">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Sanjeevani</h1>
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Praanveda Ayurshakti</h1>
             <p class="text-sm text-gray-600 mt-2">Ayurvedic Platform Management</p>
         </div>
 

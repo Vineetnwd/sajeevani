@@ -147,5 +147,27 @@ if ($action === 'list') {
     }
 }
 
+if ($action === 'my_leads') {
+    // API for Mobile App to fetch executive's own leads
+    $executive_id = $_GET['executive_id'] ?? 0;
+    try {
+        $stmt = $pdo->prepare("
+            SELECT c.id as consultation_id, c.status, c.created_at,
+                   p.id as patient_id, p.name, p.phone, p.age,
+                   v.bp, v.sugar, v.symptoms_notes
+            FROM patients p
+            JOIN consultations c ON c.patient_id = p.id
+            LEFT JOIN vitals v ON v.patient_id = p.id
+            WHERE p.executive_id = ?
+            ORDER BY c.created_at DESC
+        ");
+        $stmt->execute([$executive_id]);
+        $leads = $stmt->fetchAll();
+        jsonResponse('success', 'Fetched my leads', $leads);
+    } catch (PDOException $e) {
+        jsonResponse('error', 'Failed to fetch my leads.', $is_local ? $e->getMessage() : null);
+    }
+}
+
 jsonResponse('error', 'Invalid API Action');
 ?>
