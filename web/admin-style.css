@@ -1,0 +1,157 @@
+/* admin-style.css */
+
+/* Custom slim scrollbar for Webkit */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+}
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1; 
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8; 
+}
+
+/* Base resets for compactness */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6;
+    margin: 0;
+}
+
+/* Stat Cards */
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 251, 1) 100%);
+}
+
+/* Tables Styling */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+th {
+    background-color: #f9fafb;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f3f4f6;
+    white-space: nowrap;
+}
+td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+tbody tr:hover {
+    background-color: #f9fafb;
+    transition: background-color 0.2s ease;
+}
+
+/* Responsive Overlays & Sidebar */
+#main-sidebar {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 50;
+}
+
+#sidebar-overlay {
+    transition: opacity 0.3s ease;
+    z-index: 40;
+}
+
+/* Form Inputs compactness */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Header Action Buttons */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+/* --- GLOBAL COMPACT & PROFESSIONAL OVERRIDES --- */
+
+/* Sidebar Compactness */
+#main-sidebar {
+    width: 240px !important;
+}
+#main-sidebar a, #main-sidebar button {
+    padding-top: 0.45rem !important;
+    padding-bottom: 0.45rem !important;
+    font-size: 0.825rem !important;
+}
+#main-sidebar .p-6 {
+    padding: 1rem !important;
+}
+#main-sidebar img {
+    height: 28px !important;
+}
+
+/* Header Compactness */
+header.bg-white\/80 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+header h1 {
+    font-size: 1.1rem !important;
+}
+
+/* Main Content Container */
+main > div.flex-1 {
+    padding: 1rem !important;
+}
+
+/* Tables */
+th {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.02em !important;
+}
+td {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8rem !important;
+}
+
+/* Inputs & Buttons */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+    font-size: 0.85rem !important;
+    border-radius: 0.4rem !important;
+}
+button, a.bg-indigo-600, a.bg-green-600, a.bg-blue-600 {
+    font-size: 0.825rem !important;
+    border-radius: 0.4rem !important;
+}
+
+/* Stat Cards */
+div.grid > div.p-6, div.grid > div.sm\:p-6 {
+    padding: 1rem !important;
+    border-radius: 0.75rem !important;
+}
+div.grid p.text-3xl {
+    font-size: 1.75rem !important;
+}
+div.grid p.text-xs {
+    font-size: 0.65rem !important;
+}

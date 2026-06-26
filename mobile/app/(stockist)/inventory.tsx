@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function StockistInventory() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -111,9 +115,9 @@ export default function StockistInventory() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#064E3B' }}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F0FDF4' }} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="#064E3B" />
+    <View style={{ flex: 1, backgroundColor: isDark ? '#022C22' : '#064E3B' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#111827' : '#F0FDF4' }} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor={isDark ? '#022C22' : '#064E3B'} />
         
         <View style={styles.headerWrapper}>
           <Text style={styles.headerTitle}>My Inventory</Text>
@@ -140,9 +144,9 @@ export default function StockistInventory() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   headerWrapper: {
-    backgroundColor: '#064E3B',
+    backgroundColor: isDark ? '#022C22' : '#064E3B',
     paddingHorizontal: 20,
     paddingBottom: 20,
     borderBottomLeftRadius: 24,
@@ -160,7 +164,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#A7F3D0',
+    color: isDark ? '#34D399' : '#A7F3D0',
     fontWeight: '500',
     marginTop: 2,
   },
@@ -169,7 +173,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: '#FFF',
+    backgroundColor: isDark ? '#1F2937' : '#FFF',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -178,7 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -189,20 +193,20 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
+    color: isDark ? '#F9FAFB' : '#1F2937',
   },
   priceText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: isDark ? '#9CA3AF' : '#6B7280',
     marginTop: 4,
   },
   actionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: isDark ? '#374151' : '#F9FAFB',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: isDark ? '#4B5563' : '#E5E7EB',
   },
   btn: {
     padding: 10,
@@ -220,12 +224,12 @@ const styles = StyleSheet.create({
   qtyText: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#111827',
+    color: isDark ? '#F9FAFB' : '#111827',
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 40,
-    color: '#9CA3AF',
+    color: isDark ? '#6B7280' : '#9CA3AF',
     fontSize: 15,
   },
 });

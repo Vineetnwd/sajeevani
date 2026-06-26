@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet, View, Text, FlatList, TouchableOpacity,
   ActivityIndicator, RefreshControl, StatusBar, Modal,
-  ScrollView, Platform,
+  ScrollView, Platform, useColorScheme
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,13 +11,13 @@ import { useFocusEffect } from 'expo-router';
 
 const API_BASE = 'https://praanveda.net/web/api/mr.php';
 
-const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string; border: string }> = {
-  Pending: { bg: '#FFFBEB', text: '#92400E', dot: '#F59E0B', label: 'Pending', border: '#FDE68A' },
-  Confirmed: { bg: '#EFF6FF', text: '#1E40AF', dot: '#3B82F6', label: 'Confirmed', border: '#BFDBFE' },
-  Dispatched: { bg: '#F5F3FF', text: '#5B21B6', dot: '#8B5CF6', label: 'Dispatched', border: '#DDD6FE' },
-  Delivered: { bg: '#F0FDF4', text: '#166534', dot: '#22C55E', label: 'Delivered', border: '#BBF7D0' },
-  Cancelled: { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444', label: 'Cancelled', border: '#FECACA' },
-};
+const getStatusConfig = (isDark: boolean): Record<string, { bg: string; text: string; dot: string; label: string; border: string }> => ({
+  Pending: { bg: isDark ? '#78350F' : '#FFFBEB', text: isDark ? '#FDE68A' : '#92400E', dot: '#F59E0B', label: 'Pending', border: isDark ? '#92400E' : '#FDE68A' },
+  Confirmed: { bg: isDark ? '#1E3A8A' : '#EFF6FF', text: isDark ? '#BFDBFE' : '#1E40AF', dot: '#3B82F6', label: 'Confirmed', border: isDark ? '#1E40AF' : '#BFDBFE' },
+  Dispatched: { bg: isDark ? '#4C1D95' : '#F5F3FF', text: isDark ? '#DDD6FE' : '#5B21B6', dot: '#8B5CF6', label: 'Dispatched', border: isDark ? '#5B21B6' : '#DDD6FE' },
+  Delivered: { bg: isDark ? '#064E3B' : '#F0FDF4', text: isDark ? '#A7F3D0' : '#166534', dot: '#22C55E', label: 'Delivered', border: isDark ? '#065F46' : '#BBF7D0' },
+  Cancelled: { bg: isDark ? '#7F1D1D' : '#FEF2F2', text: isDark ? '#FECACA' : '#991B1B', dot: '#EF4444', label: 'Cancelled', border: isDark ? '#991B1B' : '#FECACA' },
+});
 
 type Order = {
   id: number; status: string; notes: string;
@@ -30,6 +30,11 @@ type OrderItem = { product_name: string; quantity: number; unit_price: string; l
 const FILTERS = ['All', 'Pending', 'Confirmed', 'Dispatched', 'Delivered', 'Cancelled'];
 
 export default function MyOrdersScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+  const statusConfig = getStatusConfig(isDark);
+
   const [mrId, setMrId] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +86,7 @@ export default function MyOrdersScreen() {
 
   // ─── Card ─────────────────────────────────────────────────────────────
   const renderOrder = ({ item, index }: { item: Order; index: number }) => {
-    const sc = STATUS_CONFIG[item.status] || STATUS_CONFIG['Pending'];
+    const sc = statusConfig[item.status] || statusConfig['Pending'];
     const date = new Date(item.created_at);
     return (
       <TouchableOpacity
@@ -142,7 +147,7 @@ export default function MyOrdersScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F5F4FF" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? "#111827" : "#F5F4FF"} />
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#6366F1" />
           <Text style={styles.loaderText}>Loading your orders…</Text>
@@ -152,9 +157,9 @@ export default function MyOrdersScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#064E3B' }}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F0FDF4' }} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="#064E3B" />
+    <View style={{ flex: 1, backgroundColor: isDark ? '#022C22' : '#064E3B' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#111827' : '#F0FDF4' }} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor={isDark ? '#022C22' : '#064E3B'} />
 
         {/* ── Header ── */}
         <View style={styles.headerWrapper}>
@@ -250,7 +255,7 @@ export default function MyOrdersScreen() {
                 <Text style={styles.sheetSubtitle}>Dr. {detailOrder?.doctor_name}</Text>
               </View>
               {detailOrder && (() => {
-                const sc = STATUS_CONFIG[detailOrder.status] || STATUS_CONFIG['Pending'];
+                const sc = statusConfig[detailOrder.status] || statusConfig['Pending'];
                 return (
                   <View style={[styles.statusPill, { backgroundColor: sc.bg, borderColor: sc.border }]}>
                     <View style={[styles.statusDot, { backgroundColor: sc.dot }]} />
@@ -303,24 +308,24 @@ export default function MyOrdersScreen() {
             </View>
 
             {detailOrder?.status_remarks ? (
-              <View style={[styles.sheetNotesRow, { backgroundColor: '#F0FDF4' }]}>
-                <Ionicons name="chatbubble-ellipses-outline" size={14} color="#166534" style={{ marginRight: 8 }} />
-                <Text style={[styles.sheetNotesText, { color: '#166534' }]}>Admin Remark: {detailOrder.status_remarks}</Text>
+              <View style={[styles.sheetNotesRow, { backgroundColor: isDark ? '#064E3B' : '#F0FDF4' }]}>
+                <Ionicons name="chatbubble-ellipses-outline" size={14} color={isDark ? '#6EE7B7' : '#166534'} style={{ marginRight: 8 }} />
+                <Text style={[styles.sheetNotesText, { color: isDark ? '#6EE7B7' : '#166534' }]}>Admin Remark: {detailOrder.status_remarks}</Text>
               </View>
             ) : null}
 
             {detailOrder?.status === 'Dispatched' && (detailOrder?.courier_company || detailOrder?.awb_no) ? (
-              <View style={[styles.sheetNotesRow, { backgroundColor: '#EFF6FF', flexDirection: 'column', alignItems: 'flex-start' }]}>
+              <View style={[styles.sheetNotesRow, { backgroundColor: isDark ? '#1E3A8A' : '#EFF6FF', flexDirection: 'column', alignItems: 'flex-start' }]}>
                 {detailOrder?.courier_company ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                    <Ionicons name="car-outline" size={14} color="#1E40AF" style={{ marginRight: 8 }} />
-                    <Text style={[styles.sheetNotesText, { color: '#1E40AF', fontWeight: '700' }]}>Courier: {detailOrder.courier_company}</Text>
+                    <Ionicons name="car-outline" size={14} color={isDark ? '#BFDBFE' : '#1E40AF'} style={{ marginRight: 8 }} />
+                    <Text style={[styles.sheetNotesText, { color: isDark ? '#BFDBFE' : '#1E40AF', fontWeight: '700' }]}>Courier: {detailOrder.courier_company}</Text>
                   </View>
                 ) : null}
                 {detailOrder?.awb_no ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Ionicons name="barcode-outline" size={14} color="#1E40AF" style={{ marginRight: 8 }} />
-                    <Text style={[styles.sheetNotesText, { color: '#1E40AF', fontWeight: '700' }]}>AWB No: {detailOrder.awb_no}</Text>
+                    <Ionicons name="barcode-outline" size={14} color={isDark ? '#BFDBFE' : '#1E40AF'} style={{ marginRight: 8 }} />
+                    <Text style={[styles.sheetNotesText, { color: isDark ? '#BFDBFE' : '#1E40AF', fontWeight: '700' }]}>AWB No: {detailOrder.awb_no}</Text>
                   </View>
                 ) : null}
               </View>
@@ -340,14 +345,14 @@ export default function MyOrdersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0FDF4' },
+const getStyles = (isDark: boolean) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: isDark ? '#111827' : '#F0FDF4' },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loaderText: { marginTop: 12, fontSize: 14, color: '#9CA3AF', fontWeight: '500' },
+  loaderText: { marginTop: 12, fontSize: 14, color: isDark ? '#9CA3AF' : '#9CA3AF', fontWeight: '500' },
 
   // Header
   headerWrapper: {
-    backgroundColor: '#064E3B',
+    backgroundColor: isDark ? '#022C22' : '#064E3B',
     paddingHorizontal: 20,
     paddingBottom: 20,
     borderBottomLeftRadius: 24,
@@ -360,14 +365,14 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   pageTitle: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
-  pageSubtitle: { fontSize: 13, color: '#A7F3D0', marginTop: 3, fontWeight: '500' },
+  pageSubtitle: { fontSize: 13, color: isDark ? '#34D399' : '#A7F3D0', marginTop: 3, fontWeight: '500' },
   headerStats: { flexDirection: 'row', alignItems: 'center' },
   headerStatBadge: {
-    alignItems: 'center', backgroundColor: '#FCD34D',
+    alignItems: 'center', backgroundColor: isDark ? '#F59E0B' : '#FCD34D',
     paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, marginLeft: 8,
   },
-  headerStatNum: { fontSize: 14, fontWeight: '800', color: '#92400E' },
-  headerStatLabel: { fontSize: 9, fontWeight: '700', color: '#92400E', marginTop: 1, textTransform: 'uppercase' },
+  headerStatNum: { fontSize: 14, fontWeight: '800', color: isDark ? '#FFFBEB' : '#92400E' },
+  headerStatLabel: { fontSize: 9, fontWeight: '700', color: isDark ? '#FFFBEB' : '#92400E', marginTop: 1, textTransform: 'uppercase' },
 
   // Filters
   filterScroll: { maxHeight: 52, flexGrow: 0 },
@@ -375,20 +380,20 @@ const styles = StyleSheet.create({
   filterChip: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 14, paddingVertical: 7,
-    borderRadius: 20, backgroundColor: '#fff',
-    borderWidth: 1.5, borderColor: '#E5E7EB',
+    borderRadius: 20, backgroundColor: isDark ? '#1F2937' : '#fff',
+    borderWidth: 1.5, borderColor: isDark ? '#374151' : '#E5E7EB',
     marginRight: 8,
-    ...Platform.select({ android: { elevation: 1 }, ios: { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } } }),
+    ...Platform.select({ android: { elevation: 1 }, ios: { shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } } }),
   },
-  filterChipActive: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
-  filterChipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  filterChipActive: { backgroundColor: isDark ? '#4F46E5' : '#6366F1', borderColor: isDark ? '#4F46E5' : '#6366F1' },
+  filterChipText: { fontSize: 13, fontWeight: '600', color: isDark ? '#D1D5DB' : '#6B7280' },
   filterChipTextActive: { color: '#fff' },
   filterBadge: {
-    backgroundColor: '#F3F4F6', borderRadius: 10,
+    backgroundColor: isDark ? '#374151' : '#F3F4F6', borderRadius: 10,
     paddingHorizontal: 6, paddingVertical: 1, marginLeft: 5,
   },
   filterBadgeActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
-  filterBadgeText: { fontSize: 11, fontWeight: '700', color: '#6B7280' },
+  filterBadgeText: { fontSize: 11, fontWeight: '700', color: isDark ? '#D1D5DB' : '#6B7280' },
   filterBadgeTextActive: { color: '#fff' },
 
   // List
@@ -396,16 +401,16 @@ const styles = StyleSheet.create({
 
   // Card
   card: {
-    backgroundColor: '#fff', borderRadius: 20, marginBottom: 12,
+    backgroundColor: isDark ? '#1F2937' : '#fff', borderRadius: 20, marginBottom: 12,
     ...Platform.select({
       android: { elevation: 3 },
-      ios: { shadowColor: '#4F46E5', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+      ios: { shadowColor: isDark ? '#000' : '#4F46E5', shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
     }),
   },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10 },
   cardIdBlock: {},
-  cardId: { fontSize: 11, fontWeight: '700', color: '#9CA3AF', letterSpacing: 0.5 },
-  cardDate: { fontSize: 11, color: '#D1D5DB', marginTop: 2 },
+  cardId: { fontSize: 11, fontWeight: '700', color: isDark ? '#6B7280' : '#9CA3AF', letterSpacing: 0.5 },
+  cardDate: { fontSize: 11, color: isDark ? '#9CA3AF' : '#D1D5DB', marginTop: 2 },
 
   statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1 },
   statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
@@ -414,78 +419,78 @@ const styles = StyleSheet.create({
   doctorRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12 },
   doctorAvatar: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginRight: 12,
+    backgroundColor: isDark ? '#312E81' : '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginRight: 12,
   },
-  doctorAvatarText: { fontSize: 16, fontWeight: '800', color: '#6366F1' },
-  doctorName: { fontSize: 15, fontWeight: '700', color: '#1E1B4B' },
-  doctorPhone: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  doctorAvatarText: { fontSize: 16, fontWeight: '800', color: isDark ? '#A5B4FC' : '#6366F1' },
+  doctorName: { fontSize: 15, fontWeight: '700', color: isDark ? '#F9FAFB' : '#1E1B4B' },
+  doctorPhone: { fontSize: 12, color: isDark ? '#9CA3AF' : '#9CA3AF', marginTop: 2 },
   amountBlock: { alignItems: 'flex-end' },
-  cardAmount: { fontSize: 18, fontWeight: '800', color: '#1E1B4B' },
-  cardItems: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  cardAmount: { fontSize: 18, fontWeight: '800', color: isDark ? '#F9FAFB' : '#1E1B4B' },
+  cardItems: { fontSize: 11, color: isDark ? '#9CA3AF' : '#9CA3AF', marginTop: 2 },
 
   cardFooter: {
     flexDirection: 'row', alignItems: 'center',
-    borderTopWidth: 1, borderTopColor: '#F3F4F6',
+    borderTopWidth: 1, borderTopColor: isDark ? '#374151' : '#F3F4F6',
     paddingHorizontal: 16, paddingVertical: 10,
   },
-  cardFooterText: { fontSize: 12, color: '#9CA3AF', marginLeft: 4, marginRight: 4 },
-  dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: '#D1D5DB', marginHorizontal: 4 },
-  tapHint: { fontSize: 11, color: '#A5B4FC', fontWeight: '600' },
+  cardFooterText: { fontSize: 12, color: isDark ? '#9CA3AF' : '#9CA3AF', marginLeft: 4, marginRight: 4 },
+  dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: isDark ? '#4B5563' : '#D1D5DB', marginHorizontal: 4 },
+  tapHint: { fontSize: 11, color: isDark ? '#818CF8' : '#A5B4FC', fontWeight: '600' },
 
   // Empty
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyIconWrap: {
     width: 80, height: 80, borderRadius: 40,
-    backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginBottom: 20,
+    backgroundColor: isDark ? '#312E81' : '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginBottom: 20,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#374151', marginBottom: 8 },
-  emptySubtitle: { fontSize: 14, color: '#9CA3AF', textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: isDark ? '#F3F4F6' : '#374151', marginBottom: 8 },
+  emptySubtitle: { fontSize: 14, color: isDark ? '#9CA3AF' : '#9CA3AF', textAlign: 'center', lineHeight: 20 },
 
   // Modal / Sheet
   overlay: { flex: 1, justifyContent: 'flex-end' },
-  overlayBg: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 10, 40, 0.55)' },
+  overlayBg: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 10, 40, 0.7)' },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: isDark ? '#1F2937' : '#fff',
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     padding: 24, paddingTop: 12,
     maxHeight: '88%',
-    ...Platform.select({ android: { elevation: 24 }, ios: { shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 20, shadowOffset: { width: 0, height: -8 } } }),
+    ...Platform.select({ android: { elevation: 24 }, ios: { shadowColor: '#000', shadowOpacity: isDark ? 0.4 : 0.2, shadowRadius: 20, shadowOffset: { width: 0, height: -8 } } }),
   },
-  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#E5E7EB', alignSelf: 'center', marginBottom: 18 },
+  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: isDark ? '#4B5563' : '#E5E7EB', alignSelf: 'center', marginBottom: 18 },
   sheetHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  sheetTitle: { fontSize: 20, fontWeight: '800', color: '#1E1B4B' },
-  sheetSubtitle: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  sheetTitle: { fontSize: 20, fontWeight: '800', color: isDark ? '#F9FAFB' : '#1E1B4B' },
+  sheetSubtitle: { fontSize: 13, color: isDark ? '#9CA3AF' : '#6B7280', marginTop: 2 },
   closeBtn: {
     width: 32, height: 32, borderRadius: 16,
-    backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginLeft: 8,
+    backgroundColor: isDark ? '#374151' : '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginLeft: 8,
   },
   sheetMeta: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
-  sheetMetaText: { fontSize: 12, color: '#9CA3AF', marginLeft: 5 },
-  sheetSectionLabel: { fontSize: 13, fontWeight: '700', color: '#6B7280', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+  sheetMetaText: { fontSize: 12, color: isDark ? '#9CA3AF' : '#9CA3AF', marginLeft: 5 },
+  sheetSectionLabel: { fontSize: 13, fontWeight: '700', color: isDark ? '#9CA3AF' : '#6B7280', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
 
   itemsList: { maxHeight: 260, marginBottom: 8 },
   itemRow: {
     flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F9FAFB',
+    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: isDark ? '#374151' : '#F9FAFB',
   },
-  itemIndex: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  itemIndexText: { fontSize: 11, fontWeight: '800', color: '#6366F1' },
-  itemName: { fontSize: 14, fontWeight: '600', color: '#1F2937' },
-  itemMeta: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  itemTotal: { fontSize: 14, fontWeight: '700', color: '#6366F1' },
+  itemIndex: { width: 26, height: 26, borderRadius: 13, backgroundColor: isDark ? '#312E81' : '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  itemIndexText: { fontSize: 11, fontWeight: '800', color: isDark ? '#A5B4FC' : '#6366F1' },
+  itemName: { fontSize: 14, fontWeight: '600', color: isDark ? '#F3F4F6' : '#1F2937' },
+  itemMeta: { fontSize: 12, color: isDark ? '#9CA3AF' : '#9CA3AF', marginTop: 2 },
+  itemTotal: { fontSize: 14, fontWeight: '700', color: isDark ? '#818CF8' : '#6366F1' },
 
-  noItemsText: { color: '#9CA3AF', textAlign: 'center', paddingVertical: 20 },
+  noItemsText: { color: isDark ? '#9CA3AF' : '#9CA3AF', textAlign: 'center', paddingVertical: 20 },
 
   sheetTotalRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    marginTop: 14, paddingTop: 14, borderTopWidth: 2, borderTopColor: '#F3F4F6',
+    marginTop: 14, paddingTop: 14, borderTopWidth: 2, borderTopColor: isDark ? '#374151' : '#F3F4F6',
   },
-  sheetTotalLabel: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
-  sheetTotalAmount: { fontSize: 24, fontWeight: '800', color: '#1E1B4B' },
+  sheetTotalLabel: { fontSize: 14, fontWeight: '600', color: isDark ? '#9CA3AF' : '#6B7280' },
+  sheetTotalAmount: { fontSize: 24, fontWeight: '800', color: isDark ? '#F9FAFB' : '#1E1B4B' },
 
   sheetNotesRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F5F3FF', borderRadius: 12, padding: 12, marginTop: 12,
+    backgroundColor: isDark ? '#4C1D95' : '#F5F3FF', borderRadius: 12, padding: 12, marginTop: 12,
   },
-  sheetNotesText: { fontSize: 13, color: '#5B21B6', flex: 1 },
+  sheetNotesText: { fontSize: 13, color: isDark ? '#DDD6FE' : '#5B21B6', flex: 1 },
 });

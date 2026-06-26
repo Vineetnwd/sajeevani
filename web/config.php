@@ -105,6 +105,29 @@ try {
         $pdo->exec("ALTER TABLE doctor_orders ADD COLUMN stockist_id INT(11) DEFAULT NULL AFTER doctor_id");
     }
 
+    // 9. Add location fields to users if missing
+    $colCheck = $pdo->query("SHOW COLUMNS FROM users LIKE 'state_id'");
+    if (!$colCheck->fetch()) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN state_id INT(11) DEFAULT NULL AFTER address");
+        $pdo->exec("ALTER TABLE users ADD COLUMN district_id INT(11) DEFAULT NULL AFTER state_id");
+        $pdo->exec("ALTER TABLE users ADD COLUMN block_id INT(11) DEFAULT NULL AFTER district_id");
+    }
+
+    $colCheck = $pdo->query("SHOW COLUMNS FROM users LIKE 'gst_no'");
+    if (!$colCheck->fetch()) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN gst_no VARCHAR(100) DEFAULT NULL AFTER address");
+    }
+
+    $colCheck = $pdo->query("SHOW COLUMNS FROM dealers LIKE 'email'");
+    if (!$colCheck->fetch()) {
+        $pdo->exec("ALTER TABLE dealers ADD COLUMN email VARCHAR(150) DEFAULT NULL AFTER phone");
+        $pdo->exec("ALTER TABLE dealers ADD COLUMN address TEXT DEFAULT NULL AFTER email");
+        $pdo->exec("ALTER TABLE dealers ADD COLUMN gst_no VARCHAR(100) DEFAULT NULL AFTER address");
+        $pdo->exec("ALTER TABLE dealers ADD COLUMN state_id INT(11) DEFAULT NULL AFTER gst_no");
+        $pdo->exec("ALTER TABLE dealers ADD COLUMN district_id INT(11) DEFAULT NULL AFTER state_id");
+        $pdo->exec("ALTER TABLE dealers ADD COLUMN block_id INT(11) DEFAULT NULL AFTER district_id");
+    }
+
     // 8. Ensure doctor_order_items table exists
     $pdo->exec("CREATE TABLE IF NOT EXISTS `doctor_order_items` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -115,6 +138,36 @@ try {
         PRIMARY KEY (`id`),
         FOREIGN KEY (`order_id`) REFERENCES `doctor_orders`(`id`) ON DELETE CASCADE,
         FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    // 10. Add package_qty to products if missing
+    $colCheck = $pdo->query("SHOW COLUMNS FROM products LIKE 'package_qty'");
+    if (!$colCheck->fetch()) {
+        $pdo->exec("ALTER TABLE products ADD COLUMN package_qty VARCHAR(100) DEFAULT NULL AFTER name");
+    }
+
+    // 11. Ensure purchase_returns table exists
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `purchase_returns` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `product_id` int(11) NOT NULL,
+        `dealer_name` varchar(150),
+        `quantity` int(11) NOT NULL,
+        `return_rate` decimal(10,2) NOT NULL DEFAULT 0.00,
+        `reason` text DEFAULT NULL,
+        `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    // 12. Ensure sale_returns table exists
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `sale_returns` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `product_id` int(11) NOT NULL,
+        `stockist_id` int(11) DEFAULT NULL,
+        `quantity` int(11) NOT NULL,
+        `return_rate` decimal(10,2) NOT NULL DEFAULT 0.00,
+        `reason` text DEFAULT NULL,
+        `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
 } catch (PDOException $e) {

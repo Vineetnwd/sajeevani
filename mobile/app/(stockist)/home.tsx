@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function StockistHome() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -101,10 +105,10 @@ export default function StockistHome() {
   const renderOrder = ({ item }) => {
     const isPending = ['Pending', 'Confirmed'].includes(item.status);
     
-    let statusColor = '#6B7280'; // Gray
-    if (item.status === 'Confirmed') statusColor = '#3B82F6';
-    if (item.status === 'Dispatched') statusColor = '#6366F1';
-    if (item.status === 'Delivered') statusColor = '#10B981';
+    let statusColor = isDark ? '#9CA3AF' : '#6B7280'; // Gray
+    if (item.status === 'Confirmed') statusColor = isDark ? '#60A5FA' : '#3B82F6';
+    if (item.status === 'Dispatched') statusColor = isDark ? '#818CF8' : '#6366F1';
+    if (item.status === 'Delivered') statusColor = isDark ? '#34D399' : '#10B981';
 
     return (
       <View style={styles.card}>
@@ -144,9 +148,9 @@ export default function StockistHome() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#064E3B' }}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F0FDF4' }} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="#064E3B" />
+    <View style={{ flex: 1, backgroundColor: isDark ? '#022C22' : '#064E3B' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#111827' : '#F0FDF4' }} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor={isDark ? '#022C22' : '#064E3B'} />
         
         <View style={styles.headerWrapper}>
           <View style={styles.header}>
@@ -189,6 +193,7 @@ export default function StockistHome() {
             <TextInput
               style={styles.input}
               placeholder="e.g. DTDC, BlueDart"
+              placeholderTextColor={isDark ? '#6B7280' : '#9CA3AF'}
               value={courier}
               onChangeText={setCourier}
             />
@@ -197,6 +202,7 @@ export default function StockistHome() {
             <TextInput
               style={styles.input}
               placeholder="Tracking Number"
+              placeholderTextColor={isDark ? '#6B7280' : '#9CA3AF'}
               value={awb}
               onChangeText={setAwb}
             />
@@ -221,9 +227,9 @@ export default function StockistHome() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   headerWrapper: {
-    backgroundColor: '#064E3B',
+    backgroundColor: isDark ? '#022C22' : '#064E3B',
     paddingHorizontal: 20,
     paddingBottom: 20,
     borderBottomLeftRadius: 24,
@@ -234,23 +240,23 @@ const styles = StyleSheet.create({
     paddingTop: 50 + 16,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  greeting: { fontSize: 13, color: '#A7F3D0', fontWeight: '500' },
+  greeting: { fontSize: 13, color: isDark ? '#34D399' : '#A7F3D0', fontWeight: '500' },
   userName: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5, marginTop: 2 },
   roleBadge: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start', marginTop: 6 },
   roleBadgeText: { fontSize: 10, fontWeight: '700', color: '#ECFDF5', textTransform: 'uppercase' },
-  logoutBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#D1FAE5', justifyContent: 'center', alignItems: 'center' },
+  logoutBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: isDark ? '#065F46' : '#D1FAE5', justifyContent: 'center', alignItems: 'center' },
   
   listContent: {
     padding: 16,
   },
   card: {
-    backgroundColor: '#FFF',
+    backgroundColor: isDark ? '#1F2937' : '#FFF',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -259,18 +265,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: isDark ? '#374151' : '#F3F4F6',
     paddingBottom: 12,
     marginBottom: 12,
   },
   orderId: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#111827',
+    color: isDark ? '#F9FAFB' : '#111827',
   },
   date: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: isDark ? '#9CA3AF' : '#9CA3AF',
     marginTop: 2,
   },
   badge: {
@@ -289,33 +295,33 @@ const styles = StyleSheet.create({
   doctorName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#374151',
+    color: isDark ? '#E5E7EB' : '#374151',
   },
   doctorPhone: {
     fontSize: 13,
-    color: '#6B7280',
+    color: isDark ? '#9CA3AF' : '#6B7280',
     marginTop: 2,
   },
   itemsText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#4F46E5',
+    color: isDark ? '#818CF8' : '#4F46E5',
     marginTop: 6,
   },
   trackingBox: {
     marginTop: 10,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: isDark ? '#374151' : '#F9FAFB',
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: isDark ? '#4B5563' : '#E5E7EB',
   },
   trackingText: {
     fontSize: 12,
-    color: '#4B5563',
+    color: isDark ? '#D1D5DB' : '#4B5563',
   },
   dispatchBtn: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: isDark ? '#4F46E5' : '#4F46E5',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
@@ -328,7 +334,7 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: 'center',
     marginTop: 40,
-    color: '#9CA3AF',
+    color: isDark ? '#6B7280' : '#9CA3AF',
     fontSize: 15,
   },
   modalOverlay: {
@@ -339,39 +345,39 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#FFF',
+    backgroundColor: isDark ? '#1F2937' : '#FFF',
     borderRadius: 20,
     padding: 24,
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.5 : 0.1,
     shadowRadius: 20,
     elevation: 10,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1F2937',
+    color: isDark ? '#F9FAFB' : '#1F2937',
     marginBottom: 20,
     textAlign: 'center',
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#4B5563',
+    color: isDark ? '#D1D5DB' : '#4B5563',
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: isDark ? '#374151' : '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: isDark ? '#4B5563' : '#E5E7EB',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 16,
     fontSize: 15,
-    color: '#111827',
+    color: isDark ? '#F9FAFB' : '#111827',
   },
   modalActions: {
     flexDirection: 'row',
@@ -385,12 +391,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   cancelBtnText: {
-    color: '#6B7280',
+    color: isDark ? '#9CA3AF' : '#6B7280',
     fontWeight: '600',
     fontSize: 15,
   },
   submitBtn: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: isDark ? '#4F46E5' : '#4F46E5',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,

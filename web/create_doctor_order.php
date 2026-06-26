@@ -87,19 +87,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <title>Create Doctor Order - <?php echo APP_NAME; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .ts-wrapper { padding: 0 !important; border: none !important; }
+        .ts-control { border: 1px solid #d1d5db !important; border-radius: 0.5rem !important; padding: 0.625rem 0.75rem !important; font-size: 0.875rem !important; box-shadow: none !important; background-color: white !important; min-height: 42px !important; display: flex; align-items: center; }
+        .ts-control.focus { border-color: #a5b4fc !important; box-shadow: 0 0 0 2px #e0e7ff !important; outline: none !important; }
+        .ts-dropdown { border-radius: 0.5rem !important; border: 1px solid #e5e7eb !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; font-size: 0.875rem !important; overflow: hidden; margin-top: 4px; }
+        .ts-dropdown .option { padding: 0.5rem 1rem !important; transition: background-color 0.1s ease; }
+        .ts-dropdown .active { background-color: #f3f4f6 !important; color: #111827 !important; }
+    </style>
+    <link rel="stylesheet" href="admin-style.css">
 </head>
 <body class="bg-gray-50 flex h-screen overflow-hidden">
     <?php include 'sidebar.php'; ?>
     <main class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden">
-        <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+        <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200 z-10 px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center sticky top-0">
+    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <button onclick="toggleMobileSidebar()" class="block lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none shrink-0 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <div class="min-w-0">
             <div>
-                <h1 class="text-xl font-bold text-gray-800">Create Direct Doctor Order</h1>
-                <a href="doctor_orders.php" class="text-sm text-indigo-600 hover:underline">&larr; Back to Orders</a>
+                <h1 class="min-w-0 text-lg sm:text-xl font-bold text-gray-800 truncate">Create <span class="hidden sm:inline">Direct Doctor </span>Order</h1>
+                <a href="doctor_orders.php" class="text-sm text-indigo-600 hover:underline">&larr; <span class="hidden sm:inline">Back to Orders</span></a>
             </div>
-        </header>
+        </div>
+    </div>
 
-        <div class="flex-1 overflow-y-auto p-8">
+</header>
+
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
             <?php if ($success): ?>
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"><?php echo htmlspecialchars($success); ?></div>
             <?php endif; ?>
@@ -111,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <form method="POST" id="orderForm">
                     <input type="hidden" name="action" value="create_order">
                     
-                    <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Select Doctor</label>
                             <select name="doctor_id" required class="w-full border border-gray-300 p-2.5 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none">
@@ -135,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 }
                                 ?>
                             </select>
-                            <p class="text-[10px] text-gray-500 mt-1">Ensure stockist has enough inventory for the items below.</p>
+                            <p class="text-xs sm:text-[10px] text-gray-500 mt-1">Ensure stockist has enough inventory for the items below.</p>
                         </div>
                     </div>
 
@@ -148,8 +167,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <h3 class="font-bold text-gray-800 mb-3 border-b pb-2">Order Items</h3>
                         <div id="itemsContainer" class="space-y-3">
                             <!-- Item Row -->
-                            <div class="item-row flex space-x-3 items-end">
-                                <div class="flex-1">
+                            <div class="item-row flex flex-wrap gap-3 items-end border-b border-gray-100 sm:border-0 pb-4 sm:pb-0 mb-4 sm:mb-0">
+                                <div class="w-full sm:flex-1">
                                     <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Product</label>
                                     <select name="product_id[]" required onchange="updatePrice(this)" class="product-select w-full border border-gray-300 p-2 rounded-lg focus:ring focus:ring-indigo-100 text-sm">
                                         <option value="" data-price="0">-- Select --</option>
@@ -161,15 +180,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                         ?>
                                     </select>
                                 </div>
-                                <div class="w-24">
+                                <div class="flex-1 sm:w-24">
                                     <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Qty</label>
                                     <input type="number" name="quantity[]" min="1" value="1" required class="w-full border border-gray-300 p-2 rounded-lg text-sm text-center">
                                 </div>
-                                <div class="w-32">
+                                <div class="flex-1 sm:w-32">
                                     <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Price (₹)</label>
                                     <input type="number" name="price[]" step="0.01" min="0" required class="price-input w-full border border-gray-300 p-2 rounded-lg text-sm bg-gray-50" readonly>
                                 </div>
-                                <button type="button" onclick="removeItem(this)" class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                                <button type="button" onclick="removeItem(this)" class="p-2 text-red-500 hover:bg-red-50 rounded-lg shrink-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>
@@ -216,6 +235,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 alert('You must have at least one item.');
             }
         }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tsConfig = {
+                create: false,
+                sortField: { field: "text", direction: "asc" }
+            };
+            document.querySelectorAll('select').forEach((el) => {
+                new TomSelect(el, tsConfig);
+            });
+        });
     </script>
 </body>
 </html>

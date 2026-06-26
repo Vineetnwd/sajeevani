@@ -1,17 +1,21 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useColorScheme } from 'react-native';
 
 export default function DoctorTabLayout() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#10B981', // Green for Doctors
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: isDark ? '#34D399' : '#10B981', // Green for Doctors
+        tabBarInactiveTintColor: isDark ? '#6B7280' : '#9CA3AF',
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#F3F4F6',
+          backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+          borderTopColor: isDark ? '#374151' : '#F3F4F6',
           borderTopWidth: 1,
           paddingBottom: 6,
           paddingTop: 6,

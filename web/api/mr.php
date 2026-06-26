@@ -17,9 +17,20 @@ $action = $_GET['action'] ?? '';
 // GET DOCTORS — List all registered doctors
 // ─────────────────────────────────────────────────
 if ($action === 'get_doctors') {
+    $mr_id = $_GET['mr_id'] ?? 0;
     try {
-        $stmt = $pdo->prepare("SELECT id, name, phone FROM users WHERE role = 'Doctor' AND status = 'Active' ORDER BY name ASC");
-        $stmt->execute();
+        if ($mr_id) {
+            $mrStmt = $pdo->prepare("SELECT block_id FROM users WHERE id = ? AND role = 'MR'");
+            $mrStmt->execute([$mr_id]);
+            $mr = $mrStmt->fetch();
+            $block_id = $mr ? $mr['block_id'] : -1;
+
+            $stmt = $pdo->prepare("SELECT id, name, phone FROM users WHERE role = 'Doctor' AND status = 'Active' AND block_id = ? ORDER BY name ASC");
+            $stmt->execute([$block_id]);
+        } else {
+            $stmt = $pdo->prepare("SELECT id, name, phone FROM users WHERE role = 'Doctor' AND status = 'Active' ORDER BY name ASC");
+            $stmt->execute();
+        }
         jsonResponse('success', 'Fetched doctors', $stmt->fetchAll());
     } catch (PDOException $e) {
         jsonResponse('error', 'Failed to fetch doctors', $is_local ? $e->getMessage() : null);
@@ -40,6 +51,7 @@ if ($action === 'add_doctor') {
     $clinic = trim($_POST['clinic_name'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $password = $_POST['password'] ?? '';
+    $mr_id = $_POST['mr_id'] ?? 0;
     $role = 'Doctor';
 
     // Default password if not provided
@@ -50,6 +62,15 @@ if ($action === 'add_doctor') {
     }
 
     try {
+        // Fetch MR's location
+        $mrStmt = $pdo->prepare("SELECT state_id, district_id, block_id FROM users WHERE id = ?");
+        $mrStmt->execute([$mr_id]);
+        $mr = $mrStmt->fetch();
+        
+        $state_id = $mr ? $mr['state_id'] : null;
+        $district_id = $mr ? $mr['district_id'] : null;
+        $block_id = $mr ? $mr['block_id'] : null;
+
         // Check if phone exists
         $chk = $pdo->prepare("SELECT id FROM users WHERE phone = ?");
         $chk->execute([$phone]);
@@ -57,8 +78,8 @@ if ($action === 'add_doctor') {
             jsonResponse('error', 'Phone number already registered');
         }
 
-        $stmt = $pdo->prepare("INSERT INTO users (name, phone, email, clinic_name, address, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')");
-        $stmt->execute([$name, $phone, $email, $clinic, $address, $pwd, $role]);
+        $stmt = $pdo->prepare("INSERT INTO users (name, phone, email, clinic_name, address, state_id, district_id, block_id, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active')");
+        $stmt->execute([$name, $phone, $email, $clinic, $address, $state_id, $district_id, $block_id, $pwd, $role]);
         $newId = $pdo->lastInsertId();
 
         jsonResponse('success', 'Doctor added successfully', ['id' => $newId, 'name' => $name, 'phone' => $phone]);

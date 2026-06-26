@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Image, useColorScheme } from 'react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LeadSubmissionScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -112,17 +115,17 @@ export default function LeadSubmissionScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Basic Information</Text>
 
-          <TextInput style={styles.input} placeholder="Patient Full Name"
+          <TextInput style={styles.input} placeholder="Patient Full Name" placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
             value={formData.name} onChangeText={(text) => handleChange('name', text)} />
 
           <View style={styles.row}>
-            <TextInput style={[styles.input, { flex: 1, marginRight: 10 }]} placeholder="Phone Number"
+            <TextInput style={[styles.input, { flex: 1, marginRight: 10 }]} placeholder="Phone Number" placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
               keyboardType="phone-pad" value={formData.phone} onChangeText={(text) => handleChange('phone', text)} />
-            <TextInput style={[styles.input, { width: 80 }]} placeholder="Age"
+            <TextInput style={[styles.input, { width: 80 }]} placeholder="Age" placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
               keyboardType="numeric" value={formData.age} onChangeText={(text) => handleChange('age', text)} />
           </View>
 
-          <TextInput style={styles.input} placeholder="Complete Address"
+          <TextInput style={styles.input} placeholder="Complete Address" placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
             value={formData.address} onChangeText={(text) => handleChange('address', text)} />
         </View>
 
@@ -130,20 +133,20 @@ export default function LeadSubmissionScreen() {
           <Text style={styles.sectionTitle}>Vitals & Symptoms</Text>
 
           <View style={styles.row}>
-            <TextInput style={[styles.input, { flex: 1, marginRight: 10 }]} placeholder="BP (e.g. 120/80)"
+            <TextInput style={[styles.input, { flex: 1, marginRight: 10 }]} placeholder="BP (e.g. 120/80)" placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
               value={formData.bp} onChangeText={(text) => handleChange('bp', text)} />
-            <TextInput style={[styles.input, { flex: 1 }]} placeholder="Sugar"
+            <TextInput style={[styles.input, { flex: 1 }]} placeholder="Sugar" placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
               value={formData.sugar} onChangeText={(text) => handleChange('sugar', text)} />
           </View>
 
           <View style={styles.row}>
-            <TextInput style={[styles.input, { flex: 1, marginRight: 10 }]} placeholder="Weight (kg)"
+            <TextInput style={[styles.input, { flex: 1, marginRight: 10 }]} placeholder="Weight (kg)" placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
               keyboardType="numeric" value={formData.weight} onChangeText={(text) => handleChange('weight', text)} />
-            <TextInput style={[styles.input, { flex: 1 }]} placeholder="Pulse (bpm)"
+            <TextInput style={[styles.input, { flex: 1 }]} placeholder="Pulse (bpm)" placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
               keyboardType="numeric" value={formData.pulse} onChangeText={(text) => handleChange('pulse', text)} />
           </View>
 
-          <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+          <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
             placeholder="Detailed Symptoms / Patient Notes" multiline={true}
             value={formData.symptoms} onChangeText={(text) => handleChange('symptoms', text)} />
         </View>
@@ -218,10 +221,10 @@ export default function LeadSubmissionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: isDark ? '#111827' : '#F3F4F6',
   },
   scrollContent: {
     padding: 16,
@@ -234,52 +237,52 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#111827',
+    color: isDark ? '#F9FAFB' : '#111827',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#059669', // Teal/Green accent
+    color: isDark ? '#10B981' : '#059669', // Teal/Green accent
     fontWeight: '600',
     marginTop: 4,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#374151',
+    color: isDark ? '#F3F4F6' : '#374151',
     marginBottom: 16,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: isDark ? '#374151' : '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: isDark ? '#4B5563' : '#E5E7EB',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 12,
     fontSize: 15,
-    color: '#1F2937',
+    color: isDark ? '#F9FAFB' : '#1F2937',
   },
   row: {
     flexDirection: 'row',
   },
   submitBtn: {
-    backgroundColor: '#059669',
+    backgroundColor: isDark ? '#10B981' : '#059669',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#059669',
+    shadowColor: isDark ? '#10B981' : '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -291,14 +294,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   actionBtn: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: isDark ? '#374151' : '#E5E7EB',
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 12,
   },
   actionBtnText: {
-    color: '#374151',
+    color: isDark ? '#F9FAFB' : '#374151',
     fontWeight: '600',
   },
   previewImage: {

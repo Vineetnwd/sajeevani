@@ -1,9 +1,13 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, useColorScheme } from 'react-native';
 import { router, useRootNavigationState } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Index() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
   const rootNavState = useRootNavigationState();
 
   useEffect(() => {
@@ -40,11 +44,11 @@ export default function Index() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: isDark ? '#111827' : '#F3F4F6',
   },
 });

@@ -40,11 +40,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     
     if ($product_id > 0 && $amount > 0) {
         try {
-            // Upsert stockist inventory
-            $stmt = $pdo->prepare("INSERT INTO stockist_inventory (stockist_id, product_id, quantity) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity + ?");
-            $stmt->execute([$stockist_id, $product_id, $amount, $amount]);
-            $success = "Stock added successfully to stockist.";
+            // Check if admin has enough stock
+            $checkStmt = $pdo->prepare("SELECT stock_quantity FROM products WHERE id = ?");
+            $checkStmt->execute([$product_id]);
+            $productData = $checkStmt->fetch();
+
+            if ($productData && $productData['stock_quantity'] >= $amount) {
+                $pdo->beginTransaction();
+
+                // Deduct from main stock
+                $deductStmt = $pdo->prepare("UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?");
+                $deductStmt->execute([$amount, $product_id]);
+
+                // Upsert stockist inventory
+                $stmt = $pdo->prepare("INSERT INTO stockist_inventory (stockist_id, product_id, quantity) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity + ?");
+                $stmt->execute([$stockist_id, $product_id, $amount, $amount]);
+                
+                $pdo->commit();
+                $success = "Stock added successfully to stockist.";
+            } else {
+                $error = "Insufficient stock in main inventory. Current available stock: " . ($productData['stock_quantity'] ?? 0);
+            }
         } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             $error = "Failed to update stock: " . $e->getMessage();
         }
     } else {
@@ -61,19 +81,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style> body { font-family: 'Inter', sans-serif; } </style>
+    <link rel="stylesheet" href="admin-style.css">
 </head>
 <body class="bg-gray-50 flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <?php include 'sidebar.php'; ?>
     <main class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden">
-        <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+        <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200 z-10 px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center sticky top-0">
+    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <button onclick="toggleMobileSidebar()" class="block lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none shrink-0 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <div class="min-w-0">
             <div>
-                <h1 class="text-xl font-bold text-gray-800">Inventory: <?php echo htmlspecialchars($stockist['name']); ?></h1>
+                <h1 class="min-w-0 text-lg sm:text-xl font-bold text-gray-800 truncate">Inventory: <?php echo htmlspecialchars($stockist['name']); ?></h1>
                 <a href="stockists.php" class="text-sm text-indigo-600 hover:underline">&larr; Back to Stockists</a>
             </div>
-            <button onclick="document.getElementById('stockModal').classList.remove('hidden')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-indigo-700">+ Assign Stock</button>
-        </header>
-        <div class="flex-1 overflow-y-auto p-8">
+        </div>
+    </div>
+    <div class="flex items-center space-x-3 sm:space-x-4">
+        <button onclick="document.getElementById('stockModal').classList.remove('hidden')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-indigo-700">+ Assign Stock</button>
+    </div>
+</header>
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
             <?php if (isset($success)): ?>
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"><?php echo $success; ?></div>
             <?php endif; ?>
@@ -82,7 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <?php endif; ?>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
+                <div class="overflow-x-auto">
+<table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Medicine Name</th>
@@ -118,6 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         ?>
                     </tbody>
                 </table>
+</div>
             </div>
         </div>
     </main>
@@ -133,9 +165,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <select name="product_id" required class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-indigo-100">
                         <option value="">-- Select a Medicine --</option>
                         <?php 
-                        $products = $pdo->query("SELECT id, name FROM products ORDER BY name ASC")->fetchAll();
+                        $products = $pdo->query("SELECT id, name, stock_quantity FROM products ORDER BY name ASC")->fetchAll();
                         foreach($products as $p): ?>
-                            <option value="<?php echo $p['id']; ?>"><?php echo htmlspecialchars($p['name']); ?></option>
+                            <option value="<?php echo $p['id']; ?>"><?php echo htmlspecialchars($p['name']); ?> (Avail: <?php echo $p['stock_quantity']; ?>)</option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -145,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
                 <div class="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-100">
                     <button type="button" onclick="document.getElementById('stockModal').classList.add('hidden')" class="px-4 py-2 border rounded text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm">Assign Stock</button>
+                    <button type="submit" class="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm">Assign Stock</button>
                 </div>
             </form>
         </div>

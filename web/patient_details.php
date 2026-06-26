@@ -67,30 +67,40 @@ try {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style> body { font-family: 'Inter', sans-serif; } </style>
+    <link rel="stylesheet" href="admin-style.css">
 </head>
 <body class="bg-gray-50 flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <?php include 'sidebar.php'; ?>
 
     <main class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden">
-        <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-4 flex justify-between items-center">
-            <div class="flex items-center">
+        <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200 z-10 px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center sticky top-0">
+    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <button onclick="toggleMobileSidebar()" class="block lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none shrink-0 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <div class="min-w-0">
+            <div class="min-w-0 flex items-center">
                 <a href="leads.php" class="mr-4 text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 </a>
-                <h1 class="text-xl font-bold text-gray-800">Patient Profile: <?php echo htmlspecialchars($patient['name']); ?></h1>
-            </div>
+                <h1 class="text-lg sm:text-xl font-bold text-gray-800 truncate">Patient Profile: <?php echo htmlspecialchars($patient['name']); ?></h1>
+        </div>
+    </div>
+    <div class="flex items-center space-x-3 sm:space-x-4">
+        </div>
             <div class="flex space-x-2">
                 <a href="lead_edit.php?id=<?php echo $consultationId; ?>" class="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium hover:bg-amber-100">Edit Info</a>
-                <a href="lead_view.php?id=<?php echo $consultationId; ?>" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center">
+                <a href="lead_view.php?id=<?php echo $consultationId; ?>" target="_blank" class="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                     Print Case File
                 </a>
             </div>
-        </header>
+    </div>
+</header>
 
-        <div class="flex-1 overflow-y-auto p-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:p-6">
                 
                 <!-- Left Column: Patient Info -->
                 <div class="space-y-8">
@@ -128,19 +138,19 @@ try {
                         <?php if ($vitals): ?>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="p-3 bg-gray-50 rounded-xl">
-                                    <p class="text-[10px] uppercase text-gray-400 font-bold">BP</p>
+                                    <p class="text-xs sm:text-[10px] uppercase text-gray-400 font-bold">BP</p>
                                     <p class="text-lg font-bold text-gray-900"><?php echo htmlspecialchars($vitals['bp']); ?></p>
                                 </div>
                                 <div class="p-3 bg-gray-50 rounded-xl">
-                                    <p class="text-[10px] uppercase text-gray-400 font-bold">Sugar</p>
+                                    <p class="text-xs sm:text-[10px] uppercase text-gray-400 font-bold">Sugar</p>
                                     <p class="text-lg font-bold text-gray-900"><?php echo htmlspecialchars($vitals['sugar']); ?></p>
                                 </div>
                                 <div class="p-3 bg-gray-50 rounded-xl">
-                                    <p class="text-[10px] uppercase text-gray-400 font-bold">Weight</p>
+                                    <p class="text-xs sm:text-[10px] uppercase text-gray-400 font-bold">Weight</p>
                                     <p class="text-lg font-bold text-gray-900"><?php echo $vitals['weight']; ?> <span class="text-xs font-normal">kg</span></p>
                                 </div>
                                 <div class="p-3 bg-gray-50 rounded-xl">
-                                    <p class="text-[10px] uppercase text-gray-400 font-bold">Pulse</p>
+                                    <p class="text-xs sm:text-[10px] uppercase text-gray-400 font-bold">Pulse</p>
                                     <p class="text-lg font-bold text-gray-900"><?php echo $vitals['pulse']; ?> <span class="text-xs font-normal">bpm</span></p>
                                 </div>
                             </div>
@@ -172,7 +182,7 @@ try {
                                     
                                     <?php if(!empty($c['doctor_response'])): ?>
                                         <div class="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border-l-4 border-blue-400 mb-4 shadow-sm">
-                                            <div class="font-bold text-[10px] uppercase mb-1 tracking-wider opacity-60">Doctor's Advice / Response:</div>
+                                            <div class="font-bold text-xs sm:text-[10px] uppercase mb-1 tracking-wider opacity-60">Doctor's Advice / Response:</div>
                                             <div class="leading-relaxed"><?php echo nl2br(htmlspecialchars($c['doctor_response'])); ?></div>
                                         </div>
                                     <?php else: ?>
@@ -182,7 +192,7 @@ try {
                                     <?php endif; ?>
 
                                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                        <div class="font-bold text-[10px] uppercase text-gray-400 mb-2 tracking-widest">Prescribed Medicines</div>
+                                        <div class="font-bold text-xs sm:text-[10px] uppercase text-gray-400 mb-2 tracking-widest">Prescribed Medicines</div>
                                         <div class="space-y-2">
                                             <?php 
                                             $meds = json_decode($c['prescription_notes'], true);
@@ -200,7 +210,7 @@ try {
                                     </div>
 
                                     <div class="mt-3">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase <?php 
+                                        <span class="px-2 py-0.5 rounded text-xs sm:text-[10px] font-bold uppercase <?php 
                                             echo $c['status'] === 'Prescribed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'; ?>">
                                             <?php echo $c['status']; ?>
                                         </span>
@@ -217,13 +227,14 @@ try {
                             Order History
                         </h3>
                         
-                        <table class="w-full text-left">
+                        <div class="overflow-x-auto">
+<table class="w-full text-left">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="py-2 px-4 text-[10px] font-bold text-gray-400 uppercase">Order ID</th>
-                                    <th class="py-2 px-4 text-[10px] font-bold text-gray-400 uppercase">Date</th>
-                                    <th class="py-2 px-4 text-[10px] font-bold text-gray-400 uppercase">Status</th>
-                                    <th class="py-2 px-4 text-[10px] font-bold text-gray-400 uppercase text-right">Amount</th>
+                                    <th class="py-2 px-4 text-xs sm:text-[10px] font-bold text-gray-400 uppercase">Order ID</th>
+                                    <th class="py-2 px-4 text-xs sm:text-[10px] font-bold text-gray-400 uppercase">Date</th>
+                                    <th class="py-2 px-4 text-xs sm:text-[10px] font-bold text-gray-400 uppercase">Status</th>
+                                    <th class="py-2 px-4 text-xs sm:text-[10px] font-bold text-gray-400 uppercase text-right">Amount</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -232,7 +243,7 @@ try {
                                         <td class="py-3 px-4 text-sm font-bold text-gray-900">#ORD-<?php echo $o['id']; ?></td>
                                         <td class="py-3 px-4 text-xs text-gray-500"><?php echo date('d M Y', strtotime($o['created_at'])); ?></td>
                                         <td class="py-3 px-4">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-600">
+                                            <span class="px-2 py-0.5 rounded text-xs sm:text-[10px] font-bold uppercase bg-blue-50 text-blue-600">
                                                 <?php echo $o['status']; ?>
                                             </span>
                                         </td>
@@ -244,6 +255,7 @@ try {
                                 <?php endif; ?>
                             </tbody>
                         </table>
+</div>
                     </div>
                 </div>
             </div>

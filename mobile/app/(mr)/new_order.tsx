@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, TouchableOpacity,
-  TextInput, ActivityIndicator, Alert, StatusBar, FlatList
+  TextInput, ActivityIndicator, Alert, StatusBar, FlatList, useColorScheme
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +15,10 @@ type Product = { id: number; name: string; description: string; price: string; s
 type CartItem = { product: Product; quantity: number };
 
 export default function NewOrderScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
   const [step, setStep] = useState<1 | 2>(1);
   const [mrId, setMrId] = useState('');
   const [notes, setNotes] = useState('');
@@ -29,6 +33,10 @@ export default function NewOrderScreen() {
   const [addDoctorVisible, setAddDoctorVisible] = useState(false);
   const [newDoctorName, setNewDoctorName] = useState('');
   const [newDoctorPhone, setNewDoctorPhone] = useState('');
+  const [newDoctorEmail, setNewDoctorEmail] = useState('');
+  const [newDoctorPassword, setNewDoctorPassword] = useState('');
+  const [newDoctorClinic, setNewDoctorClinic] = useState('');
+  const [newDoctorAddress, setNewDoctorAddress] = useState('');
   const [isAddingDoctor, setIsAddingDoctor] = useState(false);
 
   // Step 2: Products + Cart
@@ -40,13 +48,16 @@ export default function NewOrderScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem('userId').then(id => setMrId(id || ''));
-    fetchDoctors();
+    AsyncStorage.getItem('userId').then(id => {
+      setMrId(id || '');
+      fetchDoctors(id || '');
+    });
   }, []);
 
-  const fetchDoctors = async () => {
+  const fetchDoctors = async (currentMrId?: string) => {
+    const idToUse = currentMrId || mrId;
     try {
-      const res = await fetch(`${API_BASE}?action=get_doctors&t=${Date.now()}`);
+      const res = await fetch(`${API_BASE}?action=get_doctors&mr_id=${idToUse}&t=${Date.now()}`);
       const result = await res.json();
       if (result.status === 'success') {
         setDoctors(result.data || []);
@@ -89,6 +100,11 @@ export default function NewOrderScreen() {
       const formData = new FormData();
       formData.append('name', newDoctorName);
       formData.append('phone', newDoctorPhone);
+      formData.append('email', newDoctorEmail);
+      formData.append('password', newDoctorPassword);
+      formData.append('clinic_name', newDoctorClinic);
+      formData.append('address', newDoctorAddress);
+      formData.append('mr_id', mrId);
 
       const res = await fetch(`${API_BASE}?action=add_doctor`, {
         method: 'POST',
@@ -100,6 +116,10 @@ export default function NewOrderScreen() {
         setAddDoctorVisible(false);
         setNewDoctorName('');
         setNewDoctorPhone('');
+        setNewDoctorEmail('');
+        setNewDoctorPassword('');
+        setNewDoctorClinic('');
+        setNewDoctorAddress('');
         fetchDoctors(); // Refresh list
       } else {
         Alert.alert('Error', result.message || 'Failed to add doctor');
@@ -206,9 +226,9 @@ export default function NewOrderScreen() {
   // ───── STEP 1: Doctor Selection ─────
   if (step === 1) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#064E3B' }}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#F0FDF4' }} edges={['top']}>
-          <StatusBar barStyle="light-content" backgroundColor="#064E3B" />
+      <View style={{ flex: 1, backgroundColor: isDark ? '#022C22' : '#064E3B' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#111827' : '#F0FDF4' }} edges={['top']}>
+          <StatusBar barStyle="light-content" backgroundColor={isDark ? '#022C22' : '#064E3B'} />
 
           <View style={styles.stepHeaderWrapper}>
             <View style={styles.stepHeader}>
@@ -236,7 +256,7 @@ export default function NewOrderScreen() {
               placeholder="Search by name or phone..."
               value={doctorSearch}
               onChangeText={setDoctorSearch}
-              placeholderTextColor="#D1D5DB"
+              placeholderTextColor={isDark ? '#6B7280' : '#D1D5DB'}
             />
             {doctorSearch.length > 0 && (
               <TouchableOpacity onPress={() => setDoctorSearch('')}>
@@ -281,22 +301,66 @@ export default function NewOrderScreen() {
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Add New Doctor</Text>
 
-                <Text style={styles.modalLabel}>Doctor Name</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="e.g. Rahul Sharma"
-                  value={newDoctorName}
-                  onChangeText={setNewDoctorName}
-                />
+                <ScrollView style={{ maxHeight: '80%' }} showsVerticalScrollIndicator={false}>
+                  <Text style={styles.modalLabel}>Doctor Name *</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="e.g. Dr. Rajesh Kumar"
+                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                    value={newDoctorName}
+                    onChangeText={setNewDoctorName}
+                  />
 
-                <Text style={styles.modalLabel}>Phone Number</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="e.g. 9876543210"
-                  keyboardType="phone-pad"
-                  value={newDoctorPhone}
-                  onChangeText={setNewDoctorPhone}
-                />
+                  <Text style={styles.modalLabel}>Phone Number * (Login ID)</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="e.g. 9876543210"
+                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                    keyboardType="phone-pad"
+                    value={newDoctorPhone}
+                    onChangeText={setNewDoctorPhone}
+                  />
+
+                  <Text style={styles.modalLabel}>Email</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="e.g. doctor@clinic.com"
+                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={newDoctorEmail}
+                    onChangeText={setNewDoctorEmail}
+                  />
+
+                  <Text style={styles.modalLabel}>Password</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="Leave blank for '123456'"
+                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                    secureTextEntry
+                    value={newDoctorPassword}
+                    onChangeText={setNewDoctorPassword}
+                  />
+
+                  <Text style={styles.modalLabel}>Clinic Name</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="e.g. Sanjeevni Clinic"
+                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                    value={newDoctorClinic}
+                    onChangeText={setNewDoctorClinic}
+                  />
+
+                  <Text style={styles.modalLabel}>Full Address</Text>
+                  <TextInput
+                    style={[styles.modalInput, { height: 80, textAlignVertical: 'top' }]}
+                    placeholder="Clinic address..."
+                    placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                    multiline
+                    value={newDoctorAddress}
+                    onChangeText={setNewDoctorAddress}
+                  />
+                </ScrollView>
 
                 <View style={styles.modalActions}>
                   <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setAddDoctorVisible(false)}>
@@ -317,9 +381,9 @@ export default function NewOrderScreen() {
 
   // ───── STEP 2: Product Selection ─────
   return (
-    <View style={{ flex: 1, backgroundColor: '#064E3B' }}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F0FDF4' }} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="#064E3B" />
+    <View style={{ flex: 1, backgroundColor: isDark ? '#022C22' : '#064E3B' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#111827' : '#F0FDF4' }} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor={isDark ? '#022C22' : '#064E3B'} />
 
         <View style={styles.stepHeaderWrapper}>
           <View style={styles.stepHeader}>
@@ -349,7 +413,7 @@ export default function NewOrderScreen() {
             placeholder="Search medicines..."
             value={productSearch}
             onChangeText={setProductSearch}
-            placeholderTextColor="#D1D5DB"
+            placeholderTextColor={isDark ? '#6B7280' : '#D1D5DB'}
           />
         </View>
 
@@ -376,8 +440,8 @@ export default function NewOrderScreen() {
                   </View>
                   <View style={styles.qtyControls}>
                     {item.stock_quantity <= 0 ? (
-                      <View style={{ paddingHorizontal: 10, paddingVertical: 6, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FCA5A5' }}>
-                        <Text style={{ color: '#DC2626', fontSize: 10, fontWeight: '800' }}>UNAVAILABLE</Text>
+                      <View style={{ paddingHorizontal: 10, paddingVertical: 6, backgroundColor: isDark ? '#7F1D1D' : '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#991B1B' : '#FCA5A5' }}>
+                        <Text style={{ color: isDark ? '#FECACA' : '#DC2626', fontSize: 10, fontWeight: '800' }}>UNAVAILABLE</Text>
                       </View>
                     ) : inCart ? (
                       <>
@@ -414,7 +478,7 @@ export default function NewOrderScreen() {
                 placeholder="Add a note (optional)..."
                 value={notes}
                 onChangeText={setNotes}
-                placeholderTextColor="#D1D5DB"
+                placeholderTextColor={isDark ? '#6B7280' : '#D1D5DB'}
               />
             </View>
             <View style={styles.cartSummaryRow}>
@@ -440,13 +504,13 @@ export default function NewOrderScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0FDF4' },
+const getStyles = (isDark: boolean) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: isDark ? '#111827' : '#F0FDF4' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { color: '#9CA3AF', fontSize: 14 },
+  loadingText: { color: isDark ? '#9CA3AF' : '#9CA3AF', fontSize: 14 },
 
   stepHeaderWrapper: {
-    backgroundColor: '#064E3B',
+    backgroundColor: isDark ? '#022C22' : '#064E3B',
     paddingHorizontal: 20,
     paddingBottom: 20,
     borderBottomLeftRadius: 24,
@@ -465,52 +529,52 @@ const styles = StyleSheet.create({
   stepLine: { flex: 1, height: 3, marginHorizontal: 4, borderRadius: 2 },
   stepLineInactive: { backgroundColor: 'rgba(255,255,255,0.2)' },
   stepLineActive: { backgroundColor: '#10B981' },
-  stepTitle: { fontSize: 12, color: '#A7F3D0', fontWeight: '600', marginBottom: 4 },
+  stepTitle: { fontSize: 12, color: isDark ? '#34D399' : '#A7F3D0', fontWeight: '600', marginBottom: 4 },
   pageTitle: { fontSize: 24, fontWeight: '800', color: '#FFFFFF' },
-  pageSubtitle: { fontSize: 14, color: '#A7F3D0', marginTop: 4 },
-  selectedDoctorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D1FAE5', borderRadius: 10, padding: 10, marginBottom: 8 },
-  selectedDoctorText: { fontSize: 14, fontWeight: '700', color: '#064E3B' },
-  changeLink: { fontSize: 13, color: '#059669', fontWeight: '600' },
+  pageSubtitle: { fontSize: 14, color: isDark ? '#34D399' : '#A7F3D0', marginTop: 4 },
+  selectedDoctorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#065F46' : '#D1FAE5', borderRadius: 10, padding: 10, marginBottom: 8 },
+  selectedDoctorText: { fontSize: 14, fontWeight: '700', color: isDark ? '#ECFDF5' : '#064E3B' },
+  changeLink: { fontSize: 13, color: isDark ? '#10B981' : '#059669', fontWeight: '600' },
 
-  searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 16, marginBottom: 12, paddingHorizontal: 14, paddingVertical: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  searchInput: { flex: 1, fontSize: 15, color: '#1F2937' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1F2937' : '#fff', borderRadius: 14, marginHorizontal: 16, marginBottom: 12, paddingHorizontal: 14, paddingVertical: 12, shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.05, shadowRadius: 8, elevation: 2 },
+  searchInput: { flex: 1, fontSize: 15, color: isDark ? '#F9FAFB' : '#1F2937' },
 
-  doctorCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 10, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, marginHorizontal: 16 },
-  doctorAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#D1FAE5', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  doctorAvatarText: { fontSize: 18, fontWeight: '800', color: '#059669' },
-  doctorName: { fontSize: 15, fontWeight: '700', color: '#1F2937' },
-  doctorPhone: { fontSize: 13, color: '#9CA3AF', marginTop: 2 },
-  emptyText: { fontSize: 15, color: '#9CA3AF', marginTop: 8 },
+  doctorCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1F2937' : '#fff', borderRadius: 16, padding: 16, marginBottom: 10, shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.05, shadowRadius: 8, elevation: 2, marginHorizontal: 16 },
+  doctorAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: isDark ? '#065F46' : '#D1FAE5', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  doctorAvatarText: { fontSize: 18, fontWeight: '800', color: isDark ? '#10B981' : '#059669' },
+  doctorName: { fontSize: 15, fontWeight: '700', color: isDark ? '#F9FAFB' : '#1F2937' },
+  doctorPhone: { fontSize: 13, color: isDark ? '#9CA3AF' : '#9CA3AF', marginTop: 2 },
+  emptyText: { fontSize: 15, color: isDark ? '#6B7280' : '#9CA3AF', marginTop: 8 },
 
-  productCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 },
-  productName: { fontSize: 14, fontWeight: '700', color: '#1F2937' },
-  productDesc: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  productPrice: { fontSize: 14, fontWeight: '700', color: '#059669', marginTop: 4 },
+  productCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1F2937' : '#fff', borderRadius: 14, padding: 14, marginBottom: 10, shadowColor: '#000', shadowOpacity: isDark ? 0.2 : 0.04, shadowRadius: 6, elevation: 1 },
+  productName: { fontSize: 14, fontWeight: '700', color: isDark ? '#F9FAFB' : '#1F2937' },
+  productDesc: { fontSize: 12, color: isDark ? '#9CA3AF' : '#9CA3AF', marginTop: 2 },
+  productPrice: { fontSize: 14, fontWeight: '700', color: isDark ? '#10B981' : '#059669', marginTop: 4 },
   qtyControls: { flexDirection: 'row', alignItems: 'center' },
-  qtyBtn: { width: 32, height: 32, borderRadius: 10, borderWidth: 1.5, borderColor: '#059669', justifyContent: 'center', alignItems: 'center' },
-  qtyBtnFilled: { backgroundColor: '#059669', borderColor: '#059669' },
-  qtyText: { fontSize: 15, fontWeight: '800', color: '#059669', minWidth: 20, textAlign: 'center' },
+  qtyBtn: { width: 32, height: 32, borderRadius: 10, borderWidth: 1.5, borderColor: isDark ? '#10B981' : '#059669', justifyContent: 'center', alignItems: 'center' },
+  qtyBtnFilled: { backgroundColor: isDark ? '#10B981' : '#059669', borderColor: isDark ? '#10B981' : '#059669' },
+  qtyText: { fontSize: 15, fontWeight: '800', color: isDark ? '#10B981' : '#059669', minWidth: 20, textAlign: 'center' },
 
-  cartFooter: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: -4 }, elevation: 10 },
-  notesRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14 },
-  notesInput: { flex: 1, fontSize: 14, color: '#1F2937' },
+  cartFooter: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: isDark ? '#1F2937' : '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, shadowColor: '#000', shadowOpacity: isDark ? 0.4 : 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: -4 }, elevation: 10 },
+  notesRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#374151' : '#F9FAFB', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14 },
+  notesInput: { flex: 1, fontSize: 14, color: isDark ? '#F9FAFB' : '#1F2937' },
   cartSummaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cartItemCount: { fontSize: 12, color: '#9CA3AF', fontWeight: '600' },
-  cartTotal: { fontSize: 22, fontWeight: '800', color: '#1F2937', marginTop: 2 },
-  submitBtn: { flexDirection: 'row', backgroundColor: '#059669', paddingVertical: 14, paddingHorizontal: 22, borderRadius: 14, alignItems: 'center', shadowColor: '#059669', shadowOpacity: 0.35, shadowRadius: 10, elevation: 6 },
+  cartItemCount: { fontSize: 12, color: isDark ? '#9CA3AF' : '#9CA3AF', fontWeight: '600' },
+  cartTotal: { fontSize: 22, fontWeight: '800', color: isDark ? '#F9FAFB' : '#1F2937', marginTop: 2 },
+  submitBtn: { flexDirection: 'row', backgroundColor: isDark ? '#10B981' : '#059669', paddingVertical: 14, paddingHorizontal: 22, borderRadius: 14, alignItems: 'center', shadowColor: isDark ? '#10B981' : '#059669', shadowOpacity: 0.35, shadowRadius: 10, elevation: 6 },
   submitBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
-  addDoctorBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D1FAE5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, marginTop: 4 },
-  addDoctorBtnText: { color: '#064E3B', fontSize: 13, fontWeight: '700', marginLeft: 4 },
+  addDoctorBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#065F46' : '#D1FAE5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, marginTop: 4 },
+  addDoctorBtnText: { color: isDark ? '#A7F3D0' : '#064E3B', fontSize: 13, fontWeight: '700', marginLeft: 4 },
 
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 100 },
-  modalContent: { backgroundColor: '#fff', width: '85%', borderRadius: 16, padding: 20 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937', marginBottom: 16 },
-  modalLabel: { fontSize: 13, fontWeight: '600', color: '#4B5563', marginBottom: 6 },
-  modalInput: { backgroundColor: '#F3F4F6', borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 16, color: '#1F2937' },
+  modalContent: { backgroundColor: isDark ? '#1F2937' : '#fff', width: '85%', borderRadius: 16, padding: 20 },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: isDark ? '#F9FAFB' : '#1F2937', marginBottom: 16 },
+  modalLabel: { fontSize: 13, fontWeight: '600', color: isDark ? '#D1D5DB' : '#4B5563', marginBottom: 6 },
+  modalInput: { backgroundColor: isDark ? '#374151' : '#F3F4F6', borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 16, color: isDark ? '#F9FAFB' : '#1F2937' },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 },
   modalCancelBtn: { paddingHorizontal: 16, paddingVertical: 10, marginRight: 8 },
-  modalCancelText: { color: '#6B7280', fontSize: 14, fontWeight: '600' },
-  modalSaveBtn: { backgroundColor: '#6366F1', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, minWidth: 80, alignItems: 'center' },
+  modalCancelText: { color: isDark ? '#9CA3AF' : '#6B7280', fontSize: 14, fontWeight: '600' },
+  modalSaveBtn: { backgroundColor: isDark ? '#4F46E5' : '#6366F1', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, minWidth: 80, alignItems: 'center' },
   modalSaveText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });

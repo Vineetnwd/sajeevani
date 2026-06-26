@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Image, useColorScheme } from 'react-native';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +78,7 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input}
             placeholder="Phone Number / User ID"
+            placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
             keyboardType="phone-pad"
             value={phone}
             onChangeText={setPhone}
@@ -83,6 +88,7 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input}
             placeholder="Password"
+            placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -101,10 +107,10 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: isDark ? '#111827' : '#F3F4F6',
   },
   content: {
     flex: 1,
@@ -123,37 +129,37 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: '#059669',
+    color: isDark ? '#10B981' : '#059669',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: isDark ? '#9CA3AF' : '#6B7280',
     fontWeight: '600',
   },
   form: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
     padding: 24,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.3 : 0.1,
     shadowRadius: 12,
     elevation: 5,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: isDark ? '#374151' : '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: isDark ? '#4B5563' : '#E5E7EB',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 16,
     fontSize: 16,
-    color: '#1F2937',
+    color: isDark ? '#F9FAFB' : '#1F2937',
   },
   loginBtn: {
-    backgroundColor: '#059669',
+    backgroundColor: isDark ? '#10B981' : '#059669',
     borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',

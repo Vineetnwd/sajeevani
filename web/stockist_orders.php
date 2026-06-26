@@ -17,17 +17,26 @@ $stockist_id = $_SESSION['user_id'];
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style> body { font-family: 'Inter', sans-serif; } </style>
+    <link rel="stylesheet" href="admin-style.css">
 </head>
 <body class="bg-gray-50 flex h-screen overflow-hidden">
     <?php include 'sidebar.php'; ?>
 
     <main class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden">
-        <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+        <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200 z-10 px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center sticky top-0">
+    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <button onclick="toggleMobileSidebar()" class="block lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none shrink-0 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <div class="min-w-0">
             <div>
-                <h1 class="text-xl font-bold text-gray-800">My Assigned Orders</h1>
+                <h1 class="min-w-0 text-lg sm:text-xl font-bold text-gray-800 truncate">My Assigned Orders</h1>
                 <p class="text-xs text-gray-400 mt-0.5">Orders assigned to you for dispatch</p>
             </div>
-            <div class="flex items-center space-x-3">
+        </div>
+    </div>
+    <div class="flex items-center space-x-3 sm:space-x-4">
+        <div class="flex items-center space-x-3">
                 <select id="statusFilter" onchange="filterStatus(this.value)" class="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-100 outline-none">
                     <option value="">All Status</option>
                     <option value="Confirmed">Confirmed</option>
@@ -35,11 +44,13 @@ $stockist_id = $_SESSION['user_id'];
                     <option value="Delivered">Delivered</option>
                 </select>
             </div>
-        </header>
+    </div>
+</header>
 
-        <div class="flex-1 overflow-y-auto p-8">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200" id="ordersTable">
+                <div class="overflow-x-auto">
+<table class="min-w-full divide-y divide-gray-200" id="ordersTable">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Order</th>
@@ -82,7 +93,7 @@ $stockist_id = $_SESSION['user_id'];
                                 <tr class="hover:bg-gray-50 order-row" data-status="<?php echo $o['status']; ?>">
                                     <td class="px-6 py-4">
                                         <div class="font-bold text-sm text-gray-900">#DO-<?php echo $o['id']; ?></div>
-                                        <div class="text-[10px] text-gray-400 mt-0.5"><?php echo date('d M Y, h:i A', strtotime($o['created_at'])); ?></div>
+                                        <div class="text-xs sm:text-[10px] text-gray-400 mt-0.5"><?php echo date('d M Y, h:i A', strtotime($o['created_at'])); ?></div>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="font-medium text-gray-800 text-sm">Dr. <?php echo htmlspecialchars($o['doctor_name']); ?></div>
@@ -98,10 +109,10 @@ $stockist_id = $_SESSION['user_id'];
                                             <?php echo $o['status']; ?>
                                         </span>
                                         <?php if ($o['status'] === 'Dispatched' && $o['courier_company']): ?>
-                                        <div class="text-[10px] text-gray-500 mt-1">Courier: <?php echo htmlspecialchars($o['courier_company']); ?></div>
+                                        <div class="text-xs sm:text-[10px] text-gray-500 mt-1">Courier: <?php echo htmlspecialchars($o['courier_company']); ?></div>
                                         <?php endif; ?>
                                         <?php if ($o['status'] === 'Dispatched' && $o['awb_no']): ?>
-                                        <div class="text-[10px] text-gray-500 mt-0.5">AWB: <?php echo htmlspecialchars($o['awb_no']); ?></div>
+                                        <div class="text-xs sm:text-[10px] text-gray-500 mt-0.5">AWB: <?php echo htmlspecialchars($o['awb_no']); ?></div>
                                         <?php endif; ?>
                                     </td>
                                     <td class="px-6 py-4 text-right">
@@ -123,6 +134,7 @@ $stockist_id = $_SESSION['user_id'];
                         ?>
                     </tbody>
                 </table>
+</div>
             </div>
         </div>
     </main>

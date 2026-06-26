@@ -17,7 +17,7 @@ if ($action === 'login') {
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT id, name, phone, role, password, status FROM users WHERE phone = ? LIMIT 1");
+        $stmt = $pdo->prepare("SELECT id, name, phone, `role`, password, status FROM users WHERE phone = ? LIMIT 1");
         $stmt->execute([$phone]);
         $user = $stmt->fetch();
 

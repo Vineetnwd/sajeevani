@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, ActivityIndicator, TouchableOpacity, SafeAreaView, StatusBar, Linking } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, ActivityIndicator, TouchableOpacity, SafeAreaView, StatusBar, Linking, useColorScheme } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
@@ -8,6 +8,10 @@ import * as Sharing from 'expo-sharing';
 const API_BASE = 'https://praanveda.net/web/api/mr.php';
 
 export default function ReceiptScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
   const { orderId } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
@@ -128,16 +132,16 @@ export default function ReceiptScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? "#111827" : "#F8FAFC"} />
       
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backIcon} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#0F172A" />
+          <Ionicons name="arrow-back" size={24} color={isDark ? '#F9FAFB' : '#0F172A'} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Payment Receipt</Text>
         <TouchableOpacity onPress={generatePDF}>
-          <Ionicons name="share-outline" size={24} color="#059669" />
+          <Ionicons name="share-outline" size={24} color={isDark ? '#10B981' : '#059669'} />
         </TouchableOpacity>
       </View>
 
@@ -146,7 +150,7 @@ export default function ReceiptScreen() {
           {/* Receipt Top */}
           <View style={styles.receiptTop}>
             <View style={styles.paidBadge}>
-              <Ionicons name="checkmark-circle" size={16} color="#059669" />
+              <Ionicons name="checkmark-circle" size={16} color={isDark ? '#10B981' : '#059669'} />
               <Text style={styles.paidText}>PAID</Text>
             </View>
             <Text style={styles.amountText}>₹{parseFloat(order.total_amount).toFixed(2)}</Text>
@@ -208,45 +212,45 @@ export default function ReceiptScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC' },
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  errorText: { fontSize: 16, color: '#64748B', marginBottom: 20 },
-  backBtn: { backgroundColor: '#0F172A', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
+const getStyles = (isDark: boolean) => StyleSheet.create({
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? '#111827' : '#F8FAFC' },
+  container: { flex: 1, backgroundColor: isDark ? '#111827' : '#F8FAFC' },
+  errorText: { fontSize: 16, color: isDark ? '#9CA3AF' : '#64748B', marginBottom: 20 },
+  backBtn: { backgroundColor: isDark ? '#374151' : '#0F172A', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   backBtnText: { color: '#fff', fontWeight: 'bold' },
   
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 15, backgroundColor: '#F8FAFC' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 15, backgroundColor: isDark ? '#111827' : '#F8FAFC' },
   backIcon: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-start' },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
+  headerTitle: { fontSize: 18, fontWeight: '800', color: isDark ? '#F9FAFB' : '#0F172A' },
   
   scroll: { padding: 20, paddingBottom: 40 },
   
-  receiptCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24, elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+  receiptCard: { backgroundColor: isDark ? '#1F2937' : '#FFFFFF', borderRadius: 20, padding: 24, elevation: 4, shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
   
   receiptTop: { alignItems: 'center', marginBottom: 20 },
-  paidBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D1FAE5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginBottom: 12 },
-  paidText: { color: '#047857', fontWeight: '800', fontSize: 12, marginLeft: 6, letterSpacing: 1 },
-  amountText: { fontSize: 36, fontWeight: '900', color: '#0F172A', letterSpacing: -1 },
-  dateText: { fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: '500' },
+  paidBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#065F46' : '#D1FAE5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginBottom: 12 },
+  paidText: { color: isDark ? '#6EE7B7' : '#047857', fontWeight: '800', fontSize: 12, marginLeft: 6, letterSpacing: 1 },
+  amountText: { fontSize: 36, fontWeight: '900', color: isDark ? '#F9FAFB' : '#0F172A', letterSpacing: -1 },
+  dateText: { fontSize: 13, color: isDark ? '#9CA3AF' : '#64748B', marginTop: 4, fontWeight: '500' },
   
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 20 },
+  divider: { height: 1, backgroundColor: isDark ? '#374151' : '#F1F5F9', marginVertical: 20 },
   
-  detailsSection: { spaceY: 10 },
+  detailsSection: { gap: 10 },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  detailLabel: { fontSize: 13, color: '#64748B', fontWeight: '500' },
-  detailVal: { fontSize: 14, color: '#0F172A', fontWeight: '700' },
+  detailLabel: { fontSize: 13, color: isDark ? '#9CA3AF' : '#64748B', fontWeight: '500' },
+  detailVal: { fontSize: 14, color: isDark ? '#F9FAFB' : '#0F172A', fontWeight: '700' },
   
   itemsSection: {},
-  sectionTitle: { fontSize: 14, fontWeight: '800', color: '#0F172A', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionTitle: { fontSize: 14, fontWeight: '800', color: isDark ? '#F9FAFB' : '#0F172A', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 0.5 },
   itemRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  itemName: { fontSize: 14, fontWeight: '700', color: '#1E293B', marginBottom: 2 },
-  itemQty: { fontSize: 12, color: '#64748B' },
-  itemTotal: { fontSize: 15, fontWeight: '800', color: '#0F172A' },
+  itemName: { fontSize: 14, fontWeight: '700', color: isDark ? '#F3F4F6' : '#1E293B', marginBottom: 2 },
+  itemQty: { fontSize: 12, color: isDark ? '#9CA3AF' : '#64748B' },
+  itemTotal: { fontSize: 15, fontWeight: '800', color: isDark ? '#F9FAFB' : '#0F172A' },
   
-  receiptFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 20, borderTopWidth: 2, borderTopColor: '#F1F5F9' },
-  footerTotalLabel: { fontSize: 16, fontWeight: '800', color: '#0F172A' },
-  footerTotalVal: { fontSize: 20, fontWeight: '900', color: '#059669' },
+  receiptFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 20, borderTopWidth: 2, borderTopColor: isDark ? '#374151' : '#F1F5F9' },
+  footerTotalLabel: { fontSize: 16, fontWeight: '800', color: isDark ? '#F9FAFB' : '#0F172A' },
+  footerTotalVal: { fontSize: 20, fontWeight: '900', color: isDark ? '#10B981' : '#059669' },
   
-  downloadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0F172A', paddingVertical: 16, borderRadius: 16, marginTop: 20 },
+  downloadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: isDark ? '#4F46E5' : '#0F172A', paddingVertical: 16, borderRadius: 16, marginTop: 20 },
   downloadBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 });

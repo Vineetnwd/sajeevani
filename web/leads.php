@@ -18,6 +18,7 @@ if (!isset($_SESSION['user_id'])) {
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
+    <link rel="stylesheet" href="admin-style.css">
 </head>
 <body class="bg-gray-50 flex h-screen overflow-hidden">
 
@@ -26,23 +27,36 @@ if (!isset($_SESSION['user_id'])) {
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden">
-        <header class="bg-white shadow-sm border-b border-gray-200 z-10 px-8 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold text-gray-800">Pending Patient Leads</h1>
-            <div class="flex items-center space-x-4">
-                <button onclick="generateDummyLead()" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    Add Dummy Lead
+        <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200 z-10 px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center sticky top-0">
+    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <button onclick="toggleMobileSidebar()" class="block lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none shrink-0 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <div class="min-w-0">
+            <h1 class="text-lg sm:text-xl truncate font-bold text-gray-800">Pending Patient Leads</h1>
+        </div>
+    </div>
+    <div class="flex items-center space-x-3 sm:space-x-4">
+                <button onclick="generateDummyLead()" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center bg-blue-50 px-2.5 py-1.5 sm:px-3 rounded-lg border border-blue-100 whitespace-nowrap">
+                    <svg class="w-4 h-4 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    <span class="hidden sm:inline">Add Dummy Lead</span>
                 </button>
-                <button onclick="fetchLeads()" class="text-sm font-medium text-green-600 hover:text-green-700 flex items-center px-3 py-1.5">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    Refresh Queue
+                <button onclick="fetchLeads()" class="text-sm font-medium text-green-600 hover:text-green-700 flex items-center px-2.5 py-1.5 sm:px-3 whitespace-nowrap">
+                    <svg class="w-4 h-4 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span class="hidden sm:inline">Refresh Queue</span>
                 </button>
-            </div>
-        </header>
+    </div>
+</header>
 
-        <div class="flex-1 overflow-y-auto p-8">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+            <!-- Filter Bar -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 flex justify-between items-center">
+                <input type="text" id="searchInput" placeholder="Search Lead Name or Contact..." class="w-full sm:w-80 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            </div>
+
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
+                <div class="overflow-x-auto">
+<table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Patient Details</th>
@@ -58,6 +72,7 @@ if (!isset($_SESSION['user_id'])) {
                         </tr>
                     </tbody>
                 </table>
+</div>
             </div>
         </div>
     </main>
@@ -65,6 +80,62 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Prescription Modal Modal structure for later -->
 
     <script>
+        let allLeads = [];
+
+        function renderLeads(leads) {
+            const container = document.getElementById('leadsContainer');
+            if(leads.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg>
+                                <p class="text-gray-500 font-medium">No pending leads right now.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            container.innerHTML = leads.map(lead => `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-bold text-gray-900">${lead.name}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">${lead.gender}, ${lead.age} yrs</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 font-medium">${lead.phone}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-xs text-gray-900"><span class="text-gray-500">BP:</span> ${lead.bp || 'N/A'}</div>
+                        <div class="text-xs text-gray-900"><span class="text-gray-500">Sugar:</span> ${lead.sugar || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2.5 py-1 inline-flex text-[11px] leading-4 font-bold rounded-full bg-yellow-100 text-yellow-800">
+                            PENDING
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end space-x-2">
+                            <button onclick="window.location.href='patient_details.php?id=${lead.consultation_id}'" class="p-2 text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </button>
+                            <button onclick="window.location.href='lead_edit.php?id=${lead.consultation_id}'" class="p-2 text-gray-400 hover:text-amber-600 bg-gray-50 hover:bg-amber-50 rounded-lg transition-colors" title="Edit">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button onclick="openPrescription(${lead.consultation_id})" class="p-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm" title="Prescribe Action">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </button>
+                            <button onclick="deleteLead(${lead.consultation_id})" class="p-2 text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
         async function fetchLeads() {
             const container = document.getElementById('leadsContainer');
             try {
@@ -72,56 +143,8 @@ if (!isset($_SESSION['user_id'])) {
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    if(result.data.length === 0) {
-                        container.innerHTML = `
-                            <tr>
-                                <td colspan="5" class="px-6 py-16 text-center">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg>
-                                        <p class="text-gray-500 font-medium">No pending leads right now.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                        return;
-                    }
-
-                    container.innerHTML = result.data.map(lead => `
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-gray-900">${lead.name}</div>
-                                <div class="text-xs text-gray-500 mt-0.5">${lead.gender}, ${lead.age} yrs</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900 font-medium">${lead.phone}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-xs text-gray-900"><span class="text-gray-500">BP:</span> ${lead.bp || 'N/A'}</div>
-                                <div class="text-xs text-gray-900"><span class="text-gray-500">Sugar:</span> ${lead.sugar || 'N/A'}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2.5 py-1 inline-flex text-[11px] leading-4 font-bold rounded-full bg-yellow-100 text-yellow-800">
-                                    PENDING
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex justify-end space-x-2">
-                                    <button onclick="window.location.href='patient_details.php?id=${lead.consultation_id}'" class="p-2 text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                    </button>
-                                    <button onclick="window.location.href='lead_edit.php?id=${lead.consultation_id}'" class="p-2 text-gray-400 hover:text-amber-600 bg-gray-50 hover:bg-amber-50 rounded-lg transition-colors" title="Edit">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </button>
-                                    <button onclick="openPrescription(${lead.consultation_id})" class="p-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm" title="Prescribe Action">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                    </button>
-                                    <button onclick="deleteLead(${lead.consultation_id})" class="p-2 text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('');
+                    allLeads = result.data;
+                    renderLeads(allLeads);
                 } else {
                     container.innerHTML = `<div class="col-span-full text-red-500">${result.message}</div>`;
                 }
@@ -131,7 +154,18 @@ if (!isset($_SESSION['user_id'])) {
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', fetchLeads);
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLeads();
+            
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filtered = allLeads.filter(lead => 
+                    (lead.name && lead.name.toLowerCase().includes(searchTerm)) || 
+                    (lead.phone && lead.phone.toLowerCase().includes(searchTerm))
+                );
+                renderLeads(filtered);
+            });
+        });
 
         function openPrescription(consultationId) {
             window.location.href = 'prescription.php?id=' + consultationId;
